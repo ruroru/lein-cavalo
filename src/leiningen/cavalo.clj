@@ -1,16 +1,5 @@
 (ns leiningen.cavalo
-  (:require [leiningen.cavalo.server :as server])
-  (:import (java.io File)))
-
-(defn handler []
-  (fn [req]
-    (let [uri (:uri req)
-          file (File. (format "test/resources%s" uri))]
-      (if (.exists file)
-        {:status 200
-         :body   (slurp file)}
-        {:status 404
-         :body   "not found"}))))
+  (:require [leiningen.cavalo.server :as server]))
 
 (defn cavalo [project & args]
   (let [handler-function-symbol (:ring-handler (:cavalo project))]

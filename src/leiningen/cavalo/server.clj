@@ -4,8 +4,7 @@
     [ring.adapter.jetty9 :as jetty]
     [ring.adapter.jetty9.websocket :as jetty-sock]
     [ring.websocket :as ringws])
-  (:import (java.io File)
-           (java.nio.file FileSystem FileSystems Paths StandardWatchEventKinds WatchKey WatchService)))
+  (:import (java.nio.file FileSystem FileSystems Paths StandardWatchEventKinds WatchKey WatchService)))
 (def socket-set (atom #{}))
 
 
