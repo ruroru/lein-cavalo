@@ -17,7 +17,9 @@ Add ``lein-cavalo`` to the ``:plugins`` list in your ``project.clj``
 add configuration to project.clj
 ```clojure
 :cavalo {
-    :port 8080                              ;; Port for the live reload server, defaults to 8080
+    :server-config {
+                    :port 3000              ;; Defaults to 8080
+                    }
     :dirs-to-watch ["foo/bar" "baz"]        ;; Directories to monitor for changes
     :ring-handler example.server/handler    ;; Main Ring handler for serving content
 }

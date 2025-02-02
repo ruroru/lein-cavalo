@@ -19,7 +19,7 @@ jobs:
         with:
           lein: latest
       - name: Test
-        run: lein test
+        run: lein sub test
       - name: Configure GPG key
         env:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}

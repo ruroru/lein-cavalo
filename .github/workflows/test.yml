@@ -21,4 +21,5 @@ jobs:
         with:
           lein: latest
       - name: Run unit tests
-        run: lein sub test
+        
+        run: lein sub install; lein sub test

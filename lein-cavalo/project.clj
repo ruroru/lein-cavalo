@@ -7,6 +7,7 @@
   :dependencies [[org.clojure/clojure "1.11.1"]
                  [leiningen "2.11.2"]
                  [mock-clj "0.2.1"]
+
                  [org.clojure/tools.logging "1.3.0"]
                  [leiningen-core "2.11.2"]]
   :repl-options {:init-ns lein-cavalo.core})

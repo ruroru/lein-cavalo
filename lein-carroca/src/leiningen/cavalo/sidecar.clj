@@ -1,8 +1,9 @@
-(ns lein.cavalo.sidecar
+(ns leiningen.cavalo.sidecar
   (:require
     [clojure.string :as string]
-    [leiningen.cavalo.server :as server]))
-
+    [leiningen.cavalo.server :as server])
+  (:import (org.eclipse.jetty.server Server)))
+(def server (atom nil))
 
 (defn- require? [symbol]
   (try
@@ -33,13 +34,17 @@
   "I don't do a whole lot."
   [project]
   (let [dirs-to-watch (:dirs-to-watch (:cavalo project))
+        server-config {:port   8080
+                       :join?  false
+                       :daemon true}
         handler-function-symbol (:ring-handler (:cavalo project))]
-    (println "starting server")
 
-    (server/run-server (resolve-handler handler-function-symbol) dirs-to-watch)))
+    (let [local-server (server/run-server server-config (resolve-handler handler-function-symbol) dirs-to-watch)]
+      (reset! server local-server))))
 
 
 (defn stop-server
   "I don't do a whole lot."
   []
-  (println "stopping server"))
+  (println "stopping server")
+  (.stop ^Server @server))

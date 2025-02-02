@@ -70,7 +70,29 @@
       false)))
 
 
-(defn run-server [handler dirs-to-watch]
+(defn run-server [{:keys [port
+                          ws-max-idle-time
+                          join?
+                          daemon?]
+                   :or   {port             8080
+                          ws-max-idle-time (* 30 60 1000)
+                          join?            true
+                          daemon?          true}
+                   :as   server-config}
+                  handler
+                  dirs-to-watch]
+  (println "starting server")
+
+  (.start (Thread. (fn []
+                     (let [watch-service ^WatchService (watch-dirs dirs-to-watch)]
+                       (loop []
+                         (let [key (.poll watch-service)]
+                           (when key
+                             (.pollEvents ^WatchKey key)
+                             (notify-clients @sockets)
+                             (.reset key)))
+                         (recur))))))
+
   (jetty/run-jetty (fn [req]
                      (if (jetty-sock/ws-upgrade-request? req)
                        (my-websocket-handler req)
@@ -80,16 +102,4 @@
                             :headers (:headers response {})
                             :body    (str/replace (:body response) "</html>" (format "%s\n</html>" (get-reload-script (:uri req))))}
                            response))))
-                   {:port             8080
-                    :ws-max-idle-time (* 30 60 1000)
-                    :join?            false})
-
-
-  (let [watch-service ^WatchService (watch-dirs dirs-to-watch)]
-    (loop []
-      (let [key (.poll watch-service)]
-        (when key
-          (.pollEvents ^WatchKey key)
-          (notify-clients @sockets)
-          (.reset key)))
-      (recur))))
+                   server-config))
