@@ -63,6 +63,7 @@
                    :body    "<html>body</html>"
                    :headers {"Content-Type" "text/html"}})
         dirs-to-watch [watch-dir-path]
+        msg-count (atom 0)
         project {:cavalo {:ring-handler  handler
                           :dirs-to-watch dirs-to-watch}}]
 
@@ -81,18 +82,19 @@
                                            (println "socket open:"))
                              :on-message (fn [ws msg last?]
                                            (is (= "reload" (.toString msg)))
+                                           (swap! msg-count (fn [count]
+                                                              (inc count)))
                                            (reset! sleep? false)
                                            (println "Received message:" msg))
                              :on-close   (fn [ws status reason]
                                            (reset! sleep? false)
                                            (println "WebSocket closed!"))})]
 
+
       (while @sleep?
         (spit watched-file "<html>new-body</html>")
-        (Thread/sleep 1000)))
-
-
-
-
-
+        (Thread/sleep 1000))
+      (ws/close! ws)
+      (is (= 1 @msg-count)))
+    (Thread/sleep 100)
     (carraco/stop-server)))
