@@ -10,7 +10,7 @@
                  [leiningen-core "2.11.2"]
                  [ch.qos.logback/logback-classic "1.5.16"]]
 
-  :plugins [[lein-ancient "1.0.0-RC3"]]
+  :plugins [[lein-ancient "1.0.0-RC4-SNAPSHOT"]]
   :profiles {:test {:dependencies [[mock-clj "0.2.1"]]}}
 
   :repl-options {:init-ns lein-cavalo.core})
