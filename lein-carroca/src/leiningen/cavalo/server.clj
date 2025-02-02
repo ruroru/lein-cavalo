@@ -1,6 +1,7 @@
 (ns leiningen.cavalo.server
   (:require
     [clojure.string :as str]
+    [clojure.tools.logging :as logger]
     [ring.adapter.jetty9 :as jetty]
     [ring.adapter.jetty9.websocket :as jetty-sock]
     [ring.websocket :as ringws])
@@ -8,9 +9,10 @@
 
 (def sockets (atom #{}))
 
-(defn get-reload-script [uri] (format "<script>\n(function() {\n  var ws = new WebSocket('ws://localhost:8080%s');\n  ws.onmessage = function (msg) {\n\t  console.log(msg.data)\n      if (msg.data === 'reload') {\n          window.location.reload();\n      }\n      \n  };\n})();\n</script>" uri))
+(defn- get-reload-script [port]
+  (format "<script>\n(function() {\n  var ws = new WebSocket('ws://localhost:%s/');\n  ws.onmessage = function (msg) {\n\t  console.log(msg.data)\n      if (msg.data === 'reload') {\n          window.location.reload();\n      }\n      \n  };\n})();\n</script>" port))
 
-(defn my-websocket-handler [req]
+(defn- my-websocket-handler [req]
   (let [uri (:uri req)
         provided-subprotocols (:websocket-subprotocols req)]
     {:ring.websocket/listener {:on-open    (fn [socket]
@@ -40,8 +42,9 @@
      :ring.websocket/protocol (first provided-subprotocols)}))
 
 
-(defn watch-dirs [dirs-to-watch]
-  (println "watching dirs: " dirs-to-watch)
+(defn- watch-dirs [dirs-to-watch]
+  (logger/debug "Setting up dirs to watch" dirs-to-watch)
+
   (let [default-fs ^FileSystem (FileSystems/getDefault)
         watch-service ^WatchService (.newWatchService default-fs)]
     (let [paths (map (fn [item]
@@ -57,7 +60,7 @@
 
 
 
-(defn notify-clients [sockets]
+(defn- notify-clients [sockets]
   (Thread/sleep 200)
   (doseq [socket sockets]
     (tap> [:ws :msg "message"])
@@ -70,18 +73,19 @@
       false)))
 
 
-(defn run-server [{:keys [port
-                          ws-max-idle-time
-                          join?
-                          daemon?]
-                   :or   {port             8080
-                          ws-max-idle-time (* 30 60 1000)
-                          join?            true
-                          daemon?          true}
-                   :as   server-config}
+
+
+(defn get-server-config [server-config]
+  (merge {:port 8080
+          :join? false
+          :daemon? true}
+         server-config))
+
+(defn run-server [server-config
                   handler
                   dirs-to-watch]
-  (println "starting server")
+
+  (logger/info "Setting up watch dir.")
 
   (.start (Thread. (fn []
                      (let [watch-service ^WatchService (watch-dirs dirs-to-watch)]
@@ -93,13 +97,18 @@
                              (.reset key)))
                          (recur))))))
 
-  (jetty/run-jetty (fn [req]
-                     (if (jetty-sock/ws-upgrade-request? req)
-                       (my-websocket-handler req)
-                       (let [response (handler req)]
-                         (if (is-html? (:body response))
-                           {:status  (:status response 404)
-                            :headers (:headers response {})
-                            :body    (str/replace (:body response) "</html>" (format "%s\n</html>" (get-reload-script (:uri req))))}
-                           response))))
-                   server-config))
+
+  (let [new-server-config (get-server-config server-config)]
+    (logger/info "Starting server on port " (:port new-server-config))
+    (jetty/run-jetty (fn [req]
+                       (if (jetty-sock/ws-upgrade-request? req)
+                         (my-websocket-handler req)
+                         (let [response (handler req)]
+                           (if (is-html? (:body response))
+                             {:status  (:status response 404)
+                              :headers (:headers response {})
+                              :body    (str/replace (:body response) "</html>"
+                                                    (format "%s\n</html>" (get-reload-script (:port new-server-config))))}
+                             response))))
+                     new-server-config))
+  )

@@ -34,9 +34,7 @@
   "I don't do a whole lot."
   [project]
   (let [dirs-to-watch (:dirs-to-watch (:cavalo project))
-        server-config {:port   8080
-                       :join?  false
-                       :daemon true}
+        server-config (:server-config (:cavalo project))
         handler-function-symbol (:ring-handler (:cavalo project))]
 
     (let [local-server (server/run-server server-config (resolve-handler handler-function-symbol) dirs-to-watch)]
