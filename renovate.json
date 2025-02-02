@@ -3,5 +3,14 @@
   "extends": [
     "config:recommended"
   ],
-  "dependencyDashboard": false
+  "dependencyDashboard": false,
+  "packageRules": [
+    {
+      "groupName": "Carroça",
+      "matchPaths": ["lein-carroca/"]
+    },
+    {
+      "groupName": "Cavalo",
+      "matchPaths": ["lein-cavalo/"]
+    }
 }
