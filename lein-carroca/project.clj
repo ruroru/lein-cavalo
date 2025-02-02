@@ -11,7 +11,7 @@
                  [ch.qos.logback/logback-classic "1.5.16"]
                  [ring/ring-core "1.13.0"]]
 
-  :plugins [[lein-ancient "1.0.0-RC3"]]
+  :plugins [[lein-ancient "1.0.0-RC4-SNAPSHOT"]]
 
   :profiles {:test {:dependencies [[hato "1.0.0"]
                                    [commons-io/commons-io "2.18.0"]]}}
