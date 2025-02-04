@@ -10,7 +10,7 @@
 (def sockets (atom #{}))
 
 (defn- get-reload-script [port]
-  (format "<script>\n(function() {\n  var ws = new WebSocket('ws://localhost:%s/');\n  ws.onmessage = function (msg) {\n\t  console.log(msg.data)\n      if (msg.data === 'reload') {\n          window.location.reload();\n      }\n      \n  };\n})();\n</script>" port))
+  (format "<script>new WebSocket(\"ws://localhost:%s/\").onmessage=function(o){\"reload\"===o.data&&window.location.reload()};</script" port))
 
 (defn- my-websocket-handler [req]
   (let [uri (:uri req)
