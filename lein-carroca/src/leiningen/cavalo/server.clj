@@ -3,7 +3,6 @@
     [clojure.string :as str]
     [clojure.tools.logging :as logger]
     [ring.adapter.jetty9 :as jetty]
-    [ring.adapter.jetty9.websocket :as jetty-sock]
     [ring.websocket :as ringws])
   (:import (java.nio.file FileSystem FileSystems Paths StandardWatchEventKinds WatchKey WatchService)))
 
@@ -101,7 +100,7 @@
   (let [new-server-config (get-server-config server-config)]
     (logger/info "Starting server on port " (:port new-server-config))
     (jetty/run-jetty (fn [req]
-                       (if (jetty-sock/ws-upgrade-request? req)
+                       (if (ringws/upgrade-request? req)
                          (my-websocket-handler req)
                          (let [response (handler req)]
                            (if (is-html? (:body response))
