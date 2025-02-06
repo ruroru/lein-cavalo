@@ -153,3 +153,104 @@
             (= 2 @msg-count))))
     (Thread/sleep 100)
     (carraco/stop-server)))
+
+
+    
+(deftest websocket-custom-delay
+  (let [watch-dir-path (format "%s/websocket-test" (System/getProperty "java.io.tmpdir"))
+        watch-dir (File. watch-dir-path)
+        watched-file (format "%s/file.html" watch-dir-path)
+        handler (fn [_]
+                  {:status  201
+                   :body    "<html>body</html>"
+                   :headers {"Content-Type" "text/html"}})
+        dirs-to-watch [watch-dir-path]
+        msg-count (atom 0)
+        project {:cavalo {:server-config {:notification-delay 3000
+                                          :port 1234}
+                          :ring-handler  handler
+                          :dirs-to-watch dirs-to-watch}}]
+
+    (when (.exists watch-dir)
+      (FileUtils/forceDelete watch-dir))
+
+    (Files/createDirectory (.toPath watch-dir) (into-array FileAttribute nil))
+    (spit watched-file "<html>og-body</html>")
+
+    (carraco/start-server project)
+
+    (let [sleep? (atom true)
+          ws @(ws/websocket "ws://localhost:1234/"
+                            {:on-open    (fn [ws]
+                                           (reset! sleep? true)
+                                           (println "socket open:"))
+                             :on-message (fn [ws msg last?]
+                                           (is (= "reload" (.toString msg)))
+                                           (swap! msg-count (fn [count]
+                                                              (inc count)))
+                                           (reset! sleep? false)
+                                           (println "Received message:" msg))
+                             :on-close   (fn [ws status reason]
+                                           (reset! sleep? false)
+                                           (println "WebSocket closed!"))})]
+
+
+      (spit watched-file "<html>new-body</html>")
+      (Thread/sleep 2500)
+      (is (=  @msg-count) 0)
+      (Thread/sleep 1000)
+      (is (= 1 @msg-count) 1)
+      (ws/close! ws))
+    
+    (Thread/sleep 100)
+    (carraco/stop-server)))
+
+
+       
+(deftest websocket-default-delay
+  (let [watch-dir-path (format "%s/websocket-test" (System/getProperty "java.io.tmpdir"))
+        watch-dir (File. watch-dir-path)
+        watched-file (format "%s/file.html" watch-dir-path)
+        handler (fn [_]
+                  {:status  201
+                   :body    "<html>body</html>"
+                   :headers {"Content-Type" "text/html"}})
+        dirs-to-watch [watch-dir-path]
+        msg-count (atom 0)
+        project {:cavalo {:server-config {:port 1234}
+                          :ring-handler  handler
+                          :dirs-to-watch dirs-to-watch}}]
+
+    (when (.exists watch-dir)
+      (FileUtils/forceDelete watch-dir))
+
+    (Files/createDirectory (.toPath watch-dir) (into-array FileAttribute nil))
+    (spit watched-file "<html>og-body</html>")
+
+    (carraco/start-server project)
+
+    (let [sleep? (atom true)
+          ws @(ws/websocket "ws://localhost:1234/"
+                            {:on-open    (fn [ws]
+                                           (reset! sleep? true)
+                                           (println "socket open:"))
+                             :on-message (fn [ws msg last?]
+                                           (is (= "reload" (.toString msg)))
+                                           (swap! msg-count (fn [count]
+                                                              (inc count)))
+                                           (reset! sleep? false)
+                                           (println "Received message:" msg))
+                             :on-close   (fn [ws status reason]
+                                           (reset! sleep? false)
+                                           (println "WebSocket closed!"))})]
+
+
+      (spit watched-file "<html>new-body</html>")
+      (Thread/sleep 100)
+      (is (=  @msg-count) 0)
+      (Thread/sleep 220)
+      (is (= 1 @msg-count) 1)
+      (ws/close! ws))
+    
+    (Thread/sleep 100)
+    (carraco/stop-server)))

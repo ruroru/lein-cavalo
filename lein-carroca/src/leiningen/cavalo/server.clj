@@ -59,8 +59,9 @@
 
 
 
-(defn- notify-clients [sockets]
-  (Thread/sleep 200)
+(defn- notify-clients [sockets notification-delay]
+  (println "-------------------" notification-delay)
+  (Thread/sleep notification-delay)
   (doseq [socket sockets]
     (tap> [:ws :msg "message"])
     (ringws/send socket (str "reload"))))
@@ -75,16 +76,21 @@
 
 
 (defn get-server-config [server-config]
+
   (merge {:port 8080
           :join? false
-          :daemon? true}
+          :daemon? true
+          :notification-delay 200}
          server-config))
 
 (defn run-server [server-config
                   handler
                   dirs-to-watch]
 
-  (logger/info "Setting up watch dir.")
+ 
+
+  (let [new-server-config (get-server-config server-config)]
+   (logger/info "Setting up watch dir.")
 
   (.start (Thread. (fn []
                      (let [watch-service ^WatchService (watch-dirs dirs-to-watch)]
@@ -92,12 +98,13 @@
                          (let [key (.poll watch-service)]
                            (when key
                              (.pollEvents ^WatchKey key)
-                             (notify-clients @sockets)
+                             (notify-clients @sockets (:notification-delay new-server-config))
                              (.reset key)))
                          (recur))))))
 
 
-  (let [new-server-config (get-server-config server-config)]
+
+
     (logger/info "Starting server on port " (:port new-server-config))
     (jetty/run-jetty (fn [req]
                        (if (ringws/upgrade-request? req)
