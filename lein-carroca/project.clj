@@ -16,4 +16,4 @@
                     :dependencies   [[hato "1.0.0"]
                                      [commons-io/commons-io "2.18.0"]]}}
 
-  :repl-options {:init-ns cavalo-sidecar.core})
+  )

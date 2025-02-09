@@ -1,7 +1,8 @@
-(ns leiningen.cavalo.sidecar
+(ns leiningen.carraco
   (:require
     [clojure.string :as string]
-    [leiningen.cavalo.server :as server])
+    [leiningen.carroca-server :as server]
+    [leiningen.directory-watcher :as dir-watcher])
   (:import (org.eclipse.jetty.server Server)))
 (def server (atom nil))
 
@@ -45,4 +46,5 @@
   "I don't do a whole lot."
   []
   (println "stopping server")
+  (dir-watcher/stop)
   (.stop ^Server @server))

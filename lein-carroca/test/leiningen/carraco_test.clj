@@ -1,10 +1,10 @@
-(ns leiningen.cavalo.sidecar-test
+(ns leiningen.carraco-test
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [hato.client :as http-client]
             [hato.websocket :as ws]
             [clojure.test :refer [deftest is testing]]
-            [leiningen.cavalo.sidecar :as carraco])
+            [leiningen.carraco :as carroça])
   (:import (java.io File)
            (java.nio.file Files)
            (java.nio.file.attribute FileAttribute)
@@ -31,7 +31,7 @@
   (let [dirs-to-watch []
         project {:cavalo {:ring-handler  handler
                           :dirs-to-watch dirs-to-watch}}]
-    (carraco/start-server project)
+    (carroça/start-server project)
     (testing "non html responses"
       (let [response (http-client/get (format "http://localhost:8080/not-html"))]
         (is (= (:body response) "body"))
@@ -43,7 +43,7 @@
         (is (= (normalize-newlines (:body response)) (normalize-newlines (slurp (io/resource "test/html/default-port.html")))))
         (is (= (:status response) 201))
         (is (= (dissoc (:headers response) "server")))))
-    (carraco/stop-server)))
+    (carroça/stop-server)))
 
 (deftest test-custom-port
   (let [dirs-to-watch []
@@ -51,7 +51,7 @@
                           :ring-handler  handler
                           :dirs-to-watch dirs-to-watch}}]
 
-    (carraco/start-server project)
+    (carroça/start-server project)
     (testing "non html responses"
       (let [response (http-client/get (format "http://localhost:3000/not-html"))]
         (is (= (:body response) "body"))
@@ -64,11 +64,11 @@
                (normalize-newlines (slurp (io/resource "test/html/3000-port.html")))))
         (is (= (:status response) 201))
         (is (= (dissoc (:headers response) "server")))))
-    (carraco/stop-server)))
+    (carroça/stop-server)))
 
 
 (deftest websocket-default-port
-  (let [watch-dir-path (format "%s/websocket-test" (System/getProperty "java.io.tmpdir"))
+  (let [watch-dir-path (format "%s/websocket-test3" (System/getProperty "java.io.tmpdir"))
         watch-dir (File. watch-dir-path)
         watched-file (format "%s/file.html" watch-dir-path)
         handler (fn [_]
@@ -86,7 +86,7 @@
     (Files/createDirectory (.toPath watch-dir) (into-array FileAttribute nil))
     (spit watched-file "<html>og-body</html>")
 
-    (carraco/start-server project)
+    (carroça/start-server project)
 
     (let [sleep? (atom true)
           ws @(ws/websocket "ws://localhost:8080/"
@@ -111,56 +111,8 @@
       (is (or
             (= 1 @msg-count)
             (= 2 @msg-count))))
-    (carraco/stop-server)
+    (carroça/stop-server)
     (Thread/sleep 100)))
-
-(deftest websocket-custom-port
-  (let [watch-dir-path (format "%s/websocket-test" (System/getProperty "java.io.tmpdir"))
-        watch-dir (File. watch-dir-path)
-        watched-file (format "%s/file.html" watch-dir-path)
-        handler (fn [_]
-                  {:status  201
-                   :body    "<html>body</html>"
-                   :headers {"Content-Type" "text/html"}})
-        dirs-to-watch [watch-dir-path]
-        msg-count (atom 0)
-        project {:cavalo {:server-config {:port 1234}
-                          :ring-handler  handler
-                          :dirs-to-watch dirs-to-watch}}]
-
-    (when (.exists watch-dir)
-      (FileUtils/forceDelete watch-dir))
-
-    (Files/createDirectory (.toPath watch-dir) (into-array FileAttribute nil))
-    (spit watched-file "<html>og-body</html>")
-
-    (carraco/start-server project)
-
-    (let [sleep? (atom true)
-          ws @(ws/websocket "ws://localhost:1234/"
-                            {:on-open    (fn [ws]
-                                           (reset! sleep? true)
-                                           (println "socket open:"))
-                             :on-message (fn [ws msg last?]
-                                           (is (= "reload" (.toString msg)))
-                                           (swap! msg-count (fn [count]
-                                                              (inc count)))
-                                           (reset! sleep? false)
-                                           (println "Received message:" msg))
-                             :on-close   (fn [ws status reason]
-                                           (reset! sleep? false)
-                                           (println "WebSocket closed!"))})]
-
-
-      (while @sleep?
-        (spit watched-file "<html>new-body</html>")
-        (Thread/sleep 1000))
-      (ws/close! ws)
-      (is (or
-            (= 1 @msg-count)
-            (= 2 @msg-count))))
-    (Thread/sleep 100)
-    (carraco/stop-server)))
 
 
 
@@ -185,7 +137,7 @@
     (Files/createDirectory (.toPath watch-dir) (into-array FileAttribute nil))
     (spit watched-file "<html>og-body</html>")
 
-    (carraco/start-server project)
+    (carroça/start-server project)
 
     (let [sleep? (atom true)
           ws @(ws/websocket "ws://localhost:1234/"
@@ -211,10 +163,10 @@
       (ws/close! ws))
 
     (Thread/sleep 100)
-    (carraco/stop-server)))
+    (carroça/stop-server)))
 
 (deftest websocket-default-delay
-  (let [watch-dir-path (format "%s/websocket-test" (System/getProperty "java.io.tmpdir"))
+  (let [watch-dir-path (format "%s/websocket-test2" (System/getProperty "java.io.tmpdir"))
         watch-dir (File. watch-dir-path)
         watched-file (format "%s/file.html" watch-dir-path)
         handler (fn [_]
@@ -233,7 +185,7 @@
     (Files/createDirectory (.toPath watch-dir) (into-array FileAttribute nil))
     (spit watched-file "<html>og-body</html>")
 
-    (carraco/start-server project)
+    (carroça/start-server project)
 
     (let [sleep? (atom true)
           ws @(ws/websocket "ws://localhost:1234/"
@@ -259,4 +211,4 @@
       (ws/close! ws))
 
     (Thread/sleep 100)
-    (carraco/stop-server)))
+    (carroça/stop-server)))

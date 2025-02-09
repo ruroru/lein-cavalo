@@ -1,4 +1,4 @@
-name: patch-release
+name: release patch version
 on:
   workflow_dispatch:
 jobs:
@@ -19,6 +19,8 @@ jobs:
         with:
           lein: latest
       - name: Test
+        run: lein test
+      - name: subproject test
         run: lein sub test
       - name: Configure GPG key
         env:
@@ -34,7 +36,7 @@ jobs:
         env:
           CLOJARS_USER: ${{ secrets.CLOJARS_USER }}
           CLOJARS_PASS: ${{ secrets.CLOJARS_PASS }}
-        run: lein deploy clojars
+        run: lein sub deploy clojars
       - name: Bump project version to snapshot
         run: lein with-profile release bump dev
       - name: push

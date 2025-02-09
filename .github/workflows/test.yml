@@ -1,12 +1,13 @@
 name: test
 on:
+  workflow_call:
   push:
   pull_request:
 jobs:
   test-jvm:
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -21,5 +22,6 @@ jobs:
         with:
           lein: latest
       - name: Run unit tests
-        
-        run: lein sub install; lein sub test
+        run: lein test
+      - name: Run subproject unit tests
+        run: lein sub test

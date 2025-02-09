@@ -1,6 +1,6 @@
 # lein-cavalo
 
-``lein-cavalo`` is a Leiningen plugin that automatically reloads HTML when files change, without requiring an application restart. Designed for Ring-based web applications.
+``lein-cavalo`` is a Leiningen plugin that automatically reloads HTML when files change, without requiring an application restart.
 
 
 # Installation

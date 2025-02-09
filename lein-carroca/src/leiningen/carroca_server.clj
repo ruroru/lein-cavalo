@@ -1,11 +1,11 @@
-(ns leiningen.cavalo.server
+(ns leiningen.carroca-server
   (:require
     [clojure.java.io :as io]
+    [leiningen.directory-watcher :as dir-watcher]
     [clojure.string :as str]
     [clojure.tools.logging :as logger]
     [ring.adapter.jetty9 :as jetty]
-    [ring.websocket :as ringws])
-  (:import (java.nio.file FileSystem FileSystems Paths StandardWatchEventKinds WatchKey WatchService)))
+    [ring.websocket :as ringws]))
 
 (def sockets (atom #{}))
 
@@ -42,38 +42,23 @@
      :ring.websocket/protocol (first provided-subprotocols)}))
 
 
-(defn- watch-dirs [dirs-to-watch]
-  (logger/debug "Setting up dirs to watch" dirs-to-watch)
-
-  (let [default-fs ^FileSystem (FileSystems/getDefault)
-        watch-service ^WatchService (.newWatchService default-fs)]
-    (let [paths (map (fn [item]
-                       (Paths/get ^String (str item) (into-array String nil)))
-                     dirs-to-watch)]
-      (doseq [path paths]
-        (.register path watch-service (into-array
-                                        (list
-                                          StandardWatchEventKinds/ENTRY_DELETE
-                                          StandardWatchEventKinds/ENTRY_MODIFY
-                                          StandardWatchEventKinds/ENTRY_CREATE)))))
-    watch-service))
 
 
 
-(defn- notify-clients [sockets notification-delay]
-  (Thread/sleep notification-delay)
-  (doseq [socket sockets]
-    (tap> [:ws :msg "message"])
-    (ringws/send socket (str "reload"))))
+
+
 
 (defn- is-html? [response-body]
   (try
     (str/includes? response-body "</html>")
-    (catch Exception e
+    (catch Exception _
       false)))
 
 
-
+(defn- notify-clients [sockets]
+  (doseq [socket sockets]
+    (tap> [:ws :msg "message"])
+    (ringws/send socket (str "reload"))))
 
 (defn get-server-config [server-config]
 
@@ -90,20 +75,7 @@
 
 
   (let [new-server-config (get-server-config server-config)]
-    (logger/info "Setting up watch dir.")
-
-    (.start (Thread. (fn []
-                       (let [watch-service ^WatchService (watch-dirs dirs-to-watch)]
-                         (loop []
-                           (let [key (.poll watch-service)]
-                             (when key
-                               (.pollEvents ^WatchKey key)
-                               (notify-clients @sockets (:notification-delay new-server-config))
-                               (.reset key)))
-                           (recur))))))
-
-
-
+    (dir-watcher/watch dirs-to-watch (fn [] (notify-clients @sockets)) new-server-config)
 
     (logger/info "Starting server on port " (:port new-server-config))
     (jetty/run-jetty (fn [req]

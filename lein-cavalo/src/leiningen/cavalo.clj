@@ -11,7 +11,7 @@
     (logger/debug project))
 
   (lein-eval/eval-in-project project
-                             `(lein.cavalo.sidecar/start-server '~project)
+                             `(leiningen.carraco/start-server '~project)
                              '(require 'lein.cavalo.sidecar)))
 
 (defn insert-dependency-to-project [project]
