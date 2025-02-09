@@ -1,5 +1,7 @@
 (ns leiningen.cavalo.sidecar-test
-  (:require [hato.client :as http-client]
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]
+            [hato.client :as http-client]
             [hato.websocket :as ws]
             [clojure.test :refer [deftest is testing]]
             [leiningen.cavalo.sidecar :as carraco])
@@ -7,6 +9,11 @@
            (java.nio.file Files)
            (java.nio.file.attribute FileAttribute)
            (org.apache.commons.io FileUtils)))
+
+(defn- normalize-newlines [s]
+  (-> s
+      (str/replace "\r\n" "\n")
+      (str/replace "\r" "\n")))
 
 (def handler (fn [req]
                (if (= "/not-html" (:uri req))
@@ -33,7 +40,7 @@
 
     (testing "html responses witha  correct webscocket script attached to html page."
       (let [response (http-client/get (format "http://localhost:8080/"))]
-        (is (= (:body response) "<html>body<script>new WebSocket(\"ws://localhost:8080/\").onmessage=function(o){\"reload\"===o.data&&window.location.reload()};</script\n</html>"))
+        (is (= (normalize-newlines (:body response)) (normalize-newlines (slurp (io/resource "test/html/default-port.html")))))
         (is (= (:status response) 201))
         (is (= (dissoc (:headers response) "server")))))
     (carraco/stop-server)))
@@ -53,7 +60,8 @@
 
     (testing "html responses witha  correct webscocket script attached to html page."
       (let [response (http-client/get (format "http://localhost:3000/"))]
-        (is (= (:body response) "<html>body<script>new WebSocket(\"ws://localhost:3000/\").onmessage=function(o){\"reload\"===o.data&&window.location.reload()};</script\n</html>"))
+        (is (= (normalize-newlines (:body response))
+               (normalize-newlines (slurp (io/resource "test/html/3000-port.html")))))
         (is (= (:status response) 201))
         (is (= (dissoc (:headers response) "server")))))
     (carraco/stop-server)))
@@ -155,7 +163,7 @@
     (carraco/stop-server)))
 
 
-    
+
 (deftest websocket-custom-delay
   (let [watch-dir-path (format "%s/websocket-test" (System/getProperty "java.io.tmpdir"))
         watch-dir (File. watch-dir-path)
@@ -167,7 +175,7 @@
         dirs-to-watch [watch-dir-path]
         msg-count (atom 0)
         project {:cavalo {:server-config {:notification-delay 3000
-                                          :port 1234}
+                                          :port               1234}
                           :ring-handler  handler
                           :dirs-to-watch dirs-to-watch}}]
 
@@ -197,16 +205,14 @@
 
       (spit watched-file "<html>new-body</html>")
       (Thread/sleep 2500)
-      (is (=  @msg-count) 0)
+      (is (= @msg-count) 0)
       (Thread/sleep 1000)
       (is (= 1 @msg-count) 1)
       (ws/close! ws))
-    
+
     (Thread/sleep 100)
     (carraco/stop-server)))
 
-
-       
 (deftest websocket-default-delay
   (let [watch-dir-path (format "%s/websocket-test" (System/getProperty "java.io.tmpdir"))
         watch-dir (File. watch-dir-path)
@@ -247,10 +253,10 @@
 
       (spit watched-file "<html>new-body</html>")
       (Thread/sleep 100)
-      (is (=  @msg-count) 0)
+      (is (= @msg-count) 0)
       (Thread/sleep 220)
       (is (= 1 @msg-count) 1)
       (ws/close! ws))
-    
+
     (Thread/sleep 100)
     (carraco/stop-server)))

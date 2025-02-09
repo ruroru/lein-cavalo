@@ -1,5 +1,6 @@
 (ns leiningen.cavalo.server
   (:require
+    [clojure.java.io :as io]
     [clojure.string :as str]
     [clojure.tools.logging :as logger]
     [ring.adapter.jetty9 :as jetty]
@@ -9,7 +10,7 @@
 (def sockets (atom #{}))
 
 (defn- get-reload-script [port]
-  (format "<script>new WebSocket(\"ws://localhost:%s/\").onmessage=function(o){\"reload\"===o.data&&window.location.reload()};</script" port))
+  (str "<script>" (format (slurp (io/resource "js/reload.js")) port) "</script>"))
 
 (defn- my-websocket-handler [req]
   (let [uri (:uri req)
@@ -60,7 +61,6 @@
 
 
 (defn- notify-clients [sockets notification-delay]
-  (println "-------------------" notification-delay)
   (Thread/sleep notification-delay)
   (doseq [socket sockets]
     (tap> [:ws :msg "message"])
@@ -77,9 +77,9 @@
 
 (defn get-server-config [server-config]
 
-  (merge {:port 8080
-          :join? false
-          :daemon? true
+  (merge {:port               8080
+          :join?              false
+          :daemon?            true
           :notification-delay 200}
          server-config))
 
@@ -87,20 +87,20 @@
                   handler
                   dirs-to-watch]
 
- 
+
 
   (let [new-server-config (get-server-config server-config)]
-   (logger/info "Setting up watch dir.")
+    (logger/info "Setting up watch dir.")
 
-  (.start (Thread. (fn []
-                     (let [watch-service ^WatchService (watch-dirs dirs-to-watch)]
-                       (loop []
-                         (let [key (.poll watch-service)]
-                           (when key
-                             (.pollEvents ^WatchKey key)
-                             (notify-clients @sockets (:notification-delay new-server-config))
-                             (.reset key)))
-                         (recur))))))
+    (.start (Thread. (fn []
+                       (let [watch-service ^WatchService (watch-dirs dirs-to-watch)]
+                         (loop []
+                           (let [key (.poll watch-service)]
+                             (when key
+                               (.pollEvents ^WatchKey key)
+                               (notify-clients @sockets (:notification-delay new-server-config))
+                               (.reset key)))
+                           (recur))))))
 
 
 
