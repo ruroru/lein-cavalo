@@ -18,16 +18,16 @@ jobs:
         uses: DeLaGuardo/setup-clojure@13.1
         with:
           lein: latest
-      - name: Test
+      - name: test project
         run: lein test
-      - name: subproject test
+      - name: test subprojects
         run: lein sub test
       - name: Configure GPG key
         env:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
         run: echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --import >/dev/null 2>/dev/null
       - name: Step patch version for release
-        run: lein with-profile release bump patch
+        run: lein bump patch
       - name: push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -38,7 +38,7 @@ jobs:
           CLOJARS_PASS: ${{ secrets.CLOJARS_PASS }}
         run: lein sub deploy clojars
       - name: Bump project version to snapshot
-        run: lein with-profile release bump dev
+        run: lein bump dev
       - name: push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
