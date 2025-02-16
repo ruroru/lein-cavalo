@@ -4,7 +4,7 @@
     [leiningen.carroca-server :as server]
     [leiningen.directory-watcher :as dir-watcher])
   (:import (org.eclipse.jetty.server Server)))
-(def server (atom nil))
+(def  ^:private server (atom nil))
 
 (defn- require? [symbol]
   (try
@@ -32,18 +32,21 @@
 
 
 (defn start-server
-  "I don't do a whole lot."
+  "Starts server with a given handler"
   [project]
   (let [dirs-to-watch (:dirs-to-watch (:cavalo project))
         server-config (:server-config (:cavalo project))
-        handler-function-symbol (:ring-handler (:cavalo project))]
+        handler-function-symbol (:ring-handler (:cavalo project))
+        notification-delay (:notification-delay server-config 200)
+        ]
+    (dir-watcher/watch dirs-to-watch (fn [] (server/notify-clients)) notification-delay)
 
-    (let [local-server (server/run-server server-config (resolve-handler handler-function-symbol) dirs-to-watch)]
+    (let [local-server (server/run-server server-config (resolve-handler handler-function-symbol))]
       (reset! server local-server))))
 
 
 (defn stop-server
-  "I don't do a whole lot."
+  "Stops server"
   []
   (println "stopping server")
   (dir-watcher/stop)

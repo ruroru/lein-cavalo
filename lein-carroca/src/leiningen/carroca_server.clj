@@ -1,13 +1,12 @@
 (ns leiningen.carroca-server
   (:require
     [clojure.java.io :as io]
-    [leiningen.directory-watcher :as dir-watcher]
     [clojure.string :as str]
     [clojure.tools.logging :as logger]
     [ring.adapter.jetty9 :as jetty]
     [ring.websocket :as ringws]))
 
-(def sockets (atom #{}))
+(def ^:private sockets (atom #{}))
 
 (defn- get-reload-script [port]
   (str "<script>" (format (slurp (io/resource "js/reload.js")) port) "</script>"))
@@ -15,6 +14,7 @@
 (defn- my-websocket-handler [req]
   (let [uri (:uri req)
         provided-subprotocols (:websocket-subprotocols req)]
+    (logger/info "Subprotocols are: " (:websocket-subprotocols req))
     {:ring.websocket/listener {:on-open    (fn [socket]
                                              (do
                                                (println "Opening socket")
@@ -42,12 +42,6 @@
      :ring.websocket/protocol (first provided-subprotocols)}))
 
 
-
-
-
-
-
-
 (defn- is-html? [response-body]
   (try
     (str/includes? response-body "</html>")
@@ -55,13 +49,12 @@
       false)))
 
 
-(defn- notify-clients [sockets]
-  (doseq [socket sockets]
+(defn notify-clients []
+  (doseq [socket @sockets]
     (tap> [:ws :msg "message"])
     (ringws/send socket (str "reload"))))
 
 (defn get-server-config [server-config]
-
   (merge {:port               8080
           :join?              false
           :daemon?            true
@@ -69,14 +62,8 @@
          server-config))
 
 (defn run-server [server-config
-                  handler
-                  dirs-to-watch]
-
-
-
+                  handler]
   (let [new-server-config (get-server-config server-config)]
-    (dir-watcher/watch dirs-to-watch (fn [] (notify-clients @sockets)) new-server-config)
-
     (logger/info "Starting server on port " (:port new-server-config))
     (jetty/run-jetty (fn [req]
                        (if (ringws/upgrade-request? req)
@@ -88,5 +75,4 @@
                               :body    (str/replace (:body response) "</html>"
                                                     (format "%s\n</html>" (get-reload-script (:port new-server-config))))}
                              response))))
-                     new-server-config))
-  )
+                     new-server-config)))

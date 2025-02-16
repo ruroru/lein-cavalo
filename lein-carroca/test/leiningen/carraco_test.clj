@@ -15,7 +15,7 @@
       (str/replace "\r\n" "\n")
       (str/replace "\r" "\n")))
 
-(def handler (fn [req]
+(def  ^:private handler (fn [req]
                (if (= "/not-html" (:uri req))
                  {:status  200
                   :body    "body"
@@ -166,7 +166,7 @@
     (carroça/stop-server)))
 
 (deftest websocket-default-delay
-  (let [watch-dir-path (format "%s/websocket-test2" (System/getProperty "java.io.tmpdir"))
+  (let [watch-dir-path (format "%s/websocket-test5" (System/getProperty "java.io.tmpdir"))
         watch-dir (File. watch-dir-path)
         watched-file (format "%s/file.html" watch-dir-path)
         handler (fn [_]

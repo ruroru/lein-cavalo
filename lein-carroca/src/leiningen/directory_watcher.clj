@@ -2,7 +2,8 @@
   (:require [clojure.tools.logging :as logger])
   (:import (java.nio.file FileSystem FileSystems Paths StandardWatchEventKinds WatchKey WatchService)))
 
-(def watch-dir (atom false))
+(def  ^:private watch-dir (atom false))
+
 
 (defn- watch-dirs [dirs-to-watch]
   (logger/debug "Setting up dirs to watch" dirs-to-watch)
@@ -22,7 +23,7 @@
 
 
 
-(defn watch [dirs-to-watch notify-function new-server-config]
+(defn watch [dirs-to-watch notify-function notification-delay]
   (reset! watch-dir true)
   (let [thread (Thread. (fn []
                           (let [watch-service ^WatchService (watch-dirs dirs-to-watch)]
@@ -30,7 +31,7 @@
                               (let [key (.poll watch-service)]
                                 (when key
                                   (.pollEvents ^WatchKey key)
-                                  (^[long] Thread/sleep (:notification-delay new-server-config))
+                                  (^[long] Thread/sleep notification-delay)
                                   (notify-function)
                                   (.reset key)))
                               (when @watch-dir
