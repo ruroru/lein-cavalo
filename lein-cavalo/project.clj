@@ -9,7 +9,7 @@
                  [leiningen "2.11.2"]
                  [org.clojure/tools.logging "1.3.0"]
                  [leiningen-core "2.11.2"]
-                 [ch.qos.logback/logback-classic "1.5.16"]]
+                 [ch.qos.logback/logback-classic "1.5.18"]]
 
   :aot [leiningen.cavalo]
 
