@@ -11,6 +11,8 @@
                  [leiningen-core "2.11.2"]
                  [ch.qos.logback/logback-classic "1.5.16"]]
 
+  :aot [leiningen.cavalo]
+
   :deploy-repositories [["clojars" {:url      "https://repo.clojars.org"
                                     :username :env/clojars_user
                                     :password :env/clojars_pass}]] :plugins [[lein-ancient "1.0.0-RC4-SNAPSHOT"]]

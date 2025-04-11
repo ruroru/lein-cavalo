@@ -54,7 +54,7 @@
     (tap> [:ws :msg "message"])
     (ringws/send socket (str "reload"))))
 
-(defn get-server-config [server-config]
+(defn- get-server-config [server-config]
   (merge {:port               8080
           :join?              false
           :daemon?            true

@@ -2,7 +2,7 @@
   (:require [clojure.tools.logging :as logger])
   (:import (java.nio.file FileSystem FileSystems Paths StandardWatchEventKinds WatchKey WatchService)))
 
-(def  ^:private watch-dir (atom false))
+(def ^:private watch-dir (atom false))
 
 
 (defn- watch-dirs [dirs-to-watch]

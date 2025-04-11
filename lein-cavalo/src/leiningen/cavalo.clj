@@ -1,22 +1,23 @@
 (ns leiningen.cavalo
   (:require
-    [clojure.tools.logging :as logger]
     [leiningen.core.eval :as lein-eval]))
 
-(defmacro get-project-version [] "1.0.0-SNAPSHOT")
+(defmacro ^:private get-project-version1 []
+  (let [project-data (slurp "project.clj")
+        [_ _ version] (read-string project-data)]
+    version))
 
+(def ^:private version (fn []
+               (get-project-version1)))
 
-(defn start-server [project]
-  (when (logger/enabled? :debug)
-    (logger/debug project))
-
+(defn ^:private start-server [project]
   (lein-eval/eval-in-project project
                              `(leiningen.carraco/start-server '~project)
-                             '(require 'lein.cavalo.sidecar)))
+                             '(require 'leiningen.carraco)))
 
-(defn insert-dependency-to-project [project]
+(defn ^:private insert-dependency-to-project [project]
   (update-in project [:dependencies]
-             conj ['org.clojars.jj/lein-carroca (get-project-version)]))
+             conj ['org.clojars.jj/lein-carroca (version)]))
 
 (defn cavalo
   [project & _]
