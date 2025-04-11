@@ -9,7 +9,7 @@ Add ``lein-cavalo`` to the ``:plugins`` list in your ``project.clj``
 
 
 ```clojure
-:plugins [[org.clojars.jj/lein-cavalo "1.0.0"]]
+:plugins [[org.clojars.jj/lein-cavalo "1.0.1-SNAPSHOT"]]
 ```
 
 # Configuration
@@ -17,9 +17,7 @@ Add ``lein-cavalo`` to the ``:plugins`` list in your ``project.clj``
 add configuration to project.clj
 ```clojure
 :cavalo {
-    :server-config {
-                    :port 3000              ;; Defaults to 8080
-                    }
+    :server-config {:port 3000              };; Defaults to 8080
     :dirs-to-watch ["foo/bar" "baz"]        ;; Directories to monitor for changes
     :ring-handler example.server/handler    ;; Main Ring handler for serving content
 }
