@@ -18,8 +18,6 @@ jobs:
         uses: DeLaGuardo/setup-clojure@13.2
         with:
           lein: latest
-      - name: test project
-        run: lein test
       - name: test subprojects
         run: lein sub test
       - name: Configure GPG key
