@@ -1,4 +1,4 @@
-(defproject org.clojars.jj/lein-carroca "1.0.1-SNAPSHOT"
+(defproject org.clojars.jj/lein-carroca "1.0.1"
   :description "Carroça is a sidecar for lein cavalo plugin."
   :url "https://github.com/ruroru/lein-cavalo"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"

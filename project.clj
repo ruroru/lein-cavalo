@@ -1,11 +1,11 @@
-(defproject org.clojars.jj/lein-cavalo-parent "1.0.1-SNAPSHOT"
+(defproject org.clojars.jj/lein-cavalo-parent "1.0.1"
   :description "Leiningen plugin to reload page on file change"
   :url "https://github.com/ruroru/lein-cavalo"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url  "https://www.eclipse.org/legal/epl-2.0/"}
 
-  :dependencies [[org.clojars.jj/lein-cavalo "1.0.1-SNAPSHOT"]
-                 [org.clojars.jj/lein-carroca "1.0.1-SNAPSHOT"]
+  :dependencies [[org.clojars.jj/lein-cavalo "1.0.1"]
+                 [org.clojars.jj/lein-carroca "1.0.1"]
                  [leiningen-core "2.11.2"]]
 
   :plugins [[lein-sub "0.3.0"]
