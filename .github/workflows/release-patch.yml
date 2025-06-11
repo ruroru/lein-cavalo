@@ -27,7 +27,7 @@ jobs:
       - name: Step patch version for release
         run: lein bump patch
       - name: push
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: Stepping project version to prepare it for release
       - name: Deploy to clojars
@@ -38,6 +38,6 @@ jobs:
       - name: Bump project version to snapshot
         run: lein bump dev
       - name: push
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: Stepping project version for the next development cycle
