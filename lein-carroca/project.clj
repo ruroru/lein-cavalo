@@ -8,7 +8,7 @@
                  [org.clojure/tools.logging "1.3.0"]
                  [info.sunng/ring-jetty9-adapter "0.37.4"]
                  [ch.qos.logback/logback-classic "1.5.18"]
-                 [ring/ring-core "1.14.1"]]
+                 [ring/ring-core "1.14.2"]]
 
   :deploy-repositories [["clojars" {:url      "https://repo.clojars.org"
                                     :username :env/clojars_user
