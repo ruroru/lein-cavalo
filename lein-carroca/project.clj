@@ -6,7 +6,7 @@
 
   :dependencies [[org.clojure/clojure "1.12.1"]
                  [org.clojure/tools.logging "1.3.0"]
-                 [info.sunng/ring-jetty9-adapter "0.37.4"]
+                 [info.sunng/ring-jetty9-adapter "0.37.5"]
                  [ch.qos.logback/logback-classic "1.5.18"]
                  [ring/ring-core "1.14.2"]]
 
