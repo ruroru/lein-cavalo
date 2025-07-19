@@ -17,6 +17,6 @@
   :resource-paths ["resources"]
   :profiles {:test {:resource-paths ["test/resources"]
                     :dependencies   [[hato "1.0.0"]
-                                     [commons-io/commons-io "2.19.0"]]}}
+                                     [commons-io/commons-io "2.20.0"]]}}
 
   )
