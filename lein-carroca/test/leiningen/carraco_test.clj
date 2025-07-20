@@ -4,6 +4,7 @@
             [hato.client :as http-client]
             [hato.websocket :as ws]
             [clojure.test :refer [deftest is testing]]
+            [leiningen.carroca-server :as carroca-server]
             [leiningen.carraco :as carroça])
   (:import (java.io File)
            (java.nio.file Files)

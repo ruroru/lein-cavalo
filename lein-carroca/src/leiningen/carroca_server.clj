@@ -42,11 +42,9 @@
      :ring.websocket/protocol (first provided-subprotocols)}))
 
 
-(defn- is-html? [response-body]
-  (try
-    (str/includes? response-body "</html>")
-    (catch Exception _
-      false)))
+(defn is-text-html? [headers]
+  (let [lower-case-headers (into {} (map (fn [[k v]] [(clojure.string/lower-case (name k)) v]) headers))]
+    (= "text/html" (get lower-case-headers "content-type"))))
 
 
 (defn notify-clients []
@@ -69,7 +67,7 @@
                        (if (ringws/upgrade-request? req)
                          (my-websocket-handler req)
                          (let [response (handler req)]
-                           (if (is-html? (:body response))
+                           (if (is-text-html? (:headers response))
                              {:status  (:status response 404)
                               :headers (:headers response {})
                               :body    (str/replace (:body response) "</html>"
