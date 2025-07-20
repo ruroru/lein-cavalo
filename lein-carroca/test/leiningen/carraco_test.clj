@@ -1,11 +1,10 @@
 (ns leiningen.carraco-test
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
+            [clojure.test :refer [deftest is testing]]
             [hato.client :as http-client]
             [hato.websocket :as ws]
-            [clojure.test :refer [deftest is testing]]
-            [leiningen.carroca-server :as carroca-server]
-            [leiningen.carraco :as carroça])
+            [leiningen.carraco :as carroca])
   (:import (java.io File)
            (java.nio.file Files)
            (java.nio.file.attribute FileAttribute)
@@ -32,7 +31,7 @@
   (let [dirs-to-watch []
         project {:cavalo {:ring-handler  handler
                           :dirs-to-watch dirs-to-watch}}]
-    (carroça/start-server project)
+    (carroca/start-server project)
     (testing "non html responses"
       (let [response (http-client/get (format "http://localhost:8080/not-html"))]
         (is (= (:body response) "body"))
@@ -44,7 +43,7 @@
         (is (= (normalize-newlines (:body response)) (normalize-newlines (slurp (io/resource "test/html/default-port.html")))))
         (is (= (:status response) 201))
         (is (= (dissoc (:headers response) "server")))))
-    (carroça/stop-server)))
+    (carroca/stop-server)))
 
 (deftest test-custom-port
   (let [dirs-to-watch []
@@ -52,7 +51,7 @@
                           :ring-handler  handler
                           :dirs-to-watch dirs-to-watch}}]
 
-    (carroça/start-server project)
+    (carroca/start-server project)
     (testing "non html responses"
       (let [response (http-client/get (format "http://localhost:3000/not-html"))]
         (is (= (:body response) "body"))
@@ -65,7 +64,7 @@
                (normalize-newlines (slurp (io/resource "test/html/3000-port.html")))))
         (is (= (:status response) 201))
         (is (= (dissoc (:headers response) "server")))))
-    (carroça/stop-server)))
+    (carroca/stop-server)))
 
 
 (deftest websocket-default-port
@@ -87,20 +86,20 @@
     (Files/createDirectory (.toPath watch-dir) (into-array FileAttribute nil))
     (spit watched-file "<html>og-body</html>")
 
-    (carroça/start-server project)
+    (carroca/start-server project)
 
     (let [sleep? (atom true)
           ws @(ws/websocket "ws://localhost:8080/"
-                            {:on-open    (fn [ws]
+                            {:on-open    (fn [_]
                                            (reset! sleep? true)
                                            (println "socket open:"))
-                             :on-message (fn [ws msg last?]
+                             :on-message (fn [_ msg _]
                                            (is (= "reload" (.toString msg)))
                                            (swap! msg-count (fn [count]
                                                               (inc count)))
                                            (reset! sleep? false)
                                            (println "Received message:" msg))
-                             :on-close   (fn [ws status reason]
+                             :on-close   (fn [_ _ _]
                                            (reset! sleep? false)
                                            (println "WebSocket closed!"))})]
 
@@ -112,7 +111,7 @@
       (is (or
             (= 1 @msg-count)
             (= 2 @msg-count))))
-    (carroça/stop-server)
+    (carroca/stop-server)
     (Thread/sleep 100)))
 
 
@@ -138,20 +137,20 @@
     (Files/createDirectory (.toPath watch-dir) (into-array FileAttribute nil))
     (spit watched-file "<html>og-body</html>")
 
-    (carroça/start-server project)
+    (carroca/start-server project)
 
     (let [sleep? (atom true)
           ws @(ws/websocket "ws://localhost:1234/"
-                            {:on-open    (fn [ws]
+                            {:on-open    (fn [_]
                                            (reset! sleep? true)
                                            (println "socket open:"))
-                             :on-message (fn [ws msg last?]
+                             :on-message (fn [_ msg _]
                                            (is (= "reload" (.toString msg)))
                                            (swap! msg-count (fn [count]
                                                               (inc count)))
                                            (reset! sleep? false)
                                            (println "Received message:" msg))
-                             :on-close   (fn [ws status reason]
+                             :on-close   (fn [_ _ _]
                                            (reset! sleep? false)
                                            (println "WebSocket closed!"))})]
 
@@ -164,7 +163,7 @@
       (ws/close! ws))
 
     (Thread/sleep 100)
-    (carroça/stop-server)))
+    (carroca/stop-server)))
 
 (deftest websocket-default-delay
   (let [watch-dir-path (format "%s/websocket-test5" (System/getProperty "java.io.tmpdir"))
@@ -186,20 +185,20 @@
     (Files/createDirectory (.toPath watch-dir) (into-array FileAttribute nil))
     (spit watched-file "<html>og-body</html>")
 
-    (carroça/start-server project)
+    (carroca/start-server project)
 
     (let [sleep? (atom true)
           ws @(ws/websocket "ws://localhost:1234/"
-                            {:on-open    (fn [ws]
+                            {:on-open    (fn [_]
                                            (reset! sleep? true)
                                            (println "socket open:"))
-                             :on-message (fn [ws msg last?]
+                             :on-message (fn [_ msg _]
                                            (is (= "reload" (.toString msg)))
                                            (swap! msg-count (fn [count]
                                                               (inc count)))
                                            (reset! sleep? false)
                                            (println "Received message:" msg))
-                             :on-close   (fn [ws status reason]
+                             :on-close   (fn [_ _ _]
                                            (reset! sleep? false)
                                            (println "WebSocket closed!"))})]
 
@@ -212,4 +211,4 @@
       (ws/close! ws))
 
     (Thread/sleep 100)
-    (carroça/stop-server)))
+    (carroca/stop-server)))
