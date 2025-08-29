@@ -10,7 +10,7 @@
   (try
     (require symbol)
     true
-    (catch Exception e
+    (catch Exception _
       false)))
 
 
@@ -48,6 +48,5 @@
 (defn stop-server
   "Stops server"
   []
-  (println "stopping server")
   (dir-watcher/stop)
   (.stop ^Server @server))
