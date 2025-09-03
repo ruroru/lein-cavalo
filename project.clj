@@ -9,7 +9,8 @@
                  [leiningen-core "2.11.2"]]
 
   :plugins [[lein-sub "0.3.0"]
-            [org.clojars.jj/bump "1.0.4"]]
+            [org.clojars.jj/bump "1.0.4"]
+            [org.clojars.jj/bump-md "1.1.0"]]
 
   :deploy-repositories [["clojars" {:url      "https://repo.clojars.org"
                                     :username :env/clojars_user
