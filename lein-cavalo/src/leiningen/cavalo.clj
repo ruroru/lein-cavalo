@@ -2,13 +2,13 @@
   (:require
     [leiningen.core.eval :as lein-eval]))
 
-(defmacro ^:private get-project-version1 []
+(defmacro ^:private get-project-version []
   (let [project-data (slurp "project.clj")
         [_ _ version] (read-string project-data)]
     version))
 
 (def ^:private version (fn []
-               (get-project-version1)))
+               (get-project-version)))
 
 (defn ^:private start-server [project]
   (lein-eval/eval-in-project project
