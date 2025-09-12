@@ -1,4 +1,4 @@
-(defproject org.clojars.jj/lein-cavalo "1.0.5"
+(defproject org.clojars.jj/lein-cavalo "1.0.6-SNAPSHOT"
   :description "Cavalo is a leiningen plugin to reload http servers on file change."
   :url "https://github.com/ruroru/lein-cavalo"
 
