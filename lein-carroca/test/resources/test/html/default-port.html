@@ -1,4 +1,2 @@
-<html>body<script>new WebSocket("ws://localhost:8080/").onmessage = function(o) {
-    "reload" === o.data && window.location.reload()
-};</script>
+<html>body<script>function createWebSocket(e){let o,n=0;const t=5,c=1e3;function r(){o=new WebSocket(e),o.onopen=function(){console.log("WebSocket connected"),n=0},o.onmessage=function(e){"reload"===e.data&&window.location.reload()},o.onclose=function(e){console.log("WebSocket disconnected:",e.code,e.reason),function(){if(n<t){n++;const e=c*Math.pow(2,n-1);console.log(`Attempting to reconnect (${n}/${t}) in ${e}ms...`),setTimeout((()=>{r()}),e)}else console.error("Max reconnection attempts reached. Please refresh the page manually.")}()},o.onerror=function(e){console.error("WebSocket error:",e)}}return r(),o}const ws=createWebSocket("ws://localhost:8080/");</script>
 </html>

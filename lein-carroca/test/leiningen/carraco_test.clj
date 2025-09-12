@@ -17,33 +17,48 @@
 
 (def ^:private handler
   (fn [req]
-    (if (= "/not-html" (:uri req))
-      {:status  200
-       :body    "body"
-       :headers {}}
+    (case (:uri req)
+      "/not-html" {:status  200
+                   :body    "body"
+                   :headers {}}
+      "/all-lower-case-content-type" {:status  201
+                                      :body    "<html>body</html>"
+                                      :headers {"content-type" "text/html"}}
+      "/all-upper-case-content-type" {:status  201
+                                      :body    "<html>body</html>"
+                                      :headers {"CONTENT-TYPE" "text/html"}}
       {:status  201
        :body    "<html>body</html>"
-       :headers {"Content-Type" "text/html"}})))
+       :headers {"Content-Type" "text/html"}}
+      )))
 
 (defn- create-project
   "Creates a project configuration with optional server config and dirs to watch"
   [& {:keys [port notification-delay dirs-to-watch]
-      :or {dirs-to-watch []}}]
+      :or   {dirs-to-watch []}}]
   (let [server-config (cond-> {}
                               port (assoc :port port)
                               notification-delay (assoc :notification-delay notification-delay))]
-    {:cavalo (cond-> {:ring-handler handler
+    {:cavalo (cond-> {:ring-handler  handler
                       :dirs-to-watch dirs-to-watch}
                      (seq server-config) (assoc :server-config server-config))}))
 
 (defn- test-http-responses
-  "Tests both non-HTML and HTML responses for a given port"
   [port expected-html-resource]
   (testing "non-html responses"
     (let [response (http-client/get (format "http://localhost:%d/not-html" port))]
       (is (= (:body response) "body"))
       (is (= (:status response) 200))))
-
+  (testing "html responses with websocket script"
+    (let [response (http-client/get (format "http://localhost:%d/all-upper-case-content-type" port))]
+      (is (= (normalize-newlines (:body response))
+             (normalize-newlines (slurp (io/resource expected-html-resource)))))
+      (is (= (:status response) 201))))
+  (testing "html responses with websocket script"
+    (let [response (http-client/get (format "http://localhost:%d/all-lower-case-content-type" port))]
+      (is (= (normalize-newlines (:body response))
+             (normalize-newlines (slurp (io/resource expected-html-resource)))))
+      (is (= (:status response) 201))))
   (testing "html responses with websocket script"
     (let [response (http-client/get (format "http://localhost:%d/" port))]
       (is (= (normalize-newlines (:body response))
@@ -118,7 +133,7 @@
                        (with-server project
                                     (fn []
                                       (let [ws-conn (create-websocket-connection 8080 msg-count)]
-                                        (Thread/sleep 100) ; Allow connection to establish
+                                        (Thread/sleep 100)  ; Allow connection to establish
                                         (spit watched-file "<html>modified</html>")
                                         (wait-for-websocket-messages msg-count 1 2000)
                                         (ws/close! ws-conn)
@@ -174,7 +189,7 @@
         (with-server project
                      (fn []
                        (let [ws-conn (create-websocket-connection 8080 msg-count)]
-                         (Thread/sleep 100) ; Allow connection to establish
+                         (Thread/sleep 100)
                          (spit watched-file "<html>modified-subdir-content</html>")
                          (wait-for-websocket-messages msg-count 1 2000)
                          (ws/close! ws-conn)

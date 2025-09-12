@@ -6,7 +6,6 @@
 (def ^:private registered-paths (atom #{}))
 
 (defn- get-all-subdirectories
-  "Recursively gets all subdirectories of a given path"
   [^Path path]
   (when (and (Files/exists path (into-array LinkOption []))
              (Files/isDirectory path (into-array LinkOption [])))
@@ -27,7 +26,6 @@
       @subdirs)))
 
 (defn- register-directory
-  "Registers a single directory with the watch service"
   [^Path path ^WatchService watch-service]
   (try
     (when (and (Files/exists path (into-array LinkOption []))
@@ -45,14 +43,12 @@
       false)))
 
 (defn- register-all-directories
-  "Registers a directory and all its subdirectories with the watch service"
   [^Path root-path ^WatchService watch-service]
   (logger/debug "Registering all subdirectories under:" (.toString root-path))
   (doseq [path (get-all-subdirectories root-path)]
     (register-directory path watch-service)))
 
 (defn- handle-directory-creation
-  "Handles creation of new directories by registering them for watching"
   [^Path parent-path ^String created-name ^WatchService watch-service]
   (let [created-path (.resolve parent-path created-name)]
     (when (and (Files/exists created-path (into-array LinkOption []))

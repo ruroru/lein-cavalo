@@ -4,7 +4,7 @@
     [leiningen.carroca-server :as server]
     [leiningen.directory-watcher :as dir-watcher])
   (:import (org.eclipse.jetty.server Server)))
-(def  ^:private server (atom nil))
+(def ^:private server (atom nil))
 
 (defn- require? [symbol]
   (try
