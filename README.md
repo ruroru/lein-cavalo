@@ -9,7 +9,7 @@ Add ``lein-cavalo`` to the ``:plugins`` list in your ``project.clj``
 
 
 ```clojure
-:plugins [[org.clojars.jj/lein-cavalo "1.0.4"]]
+:plugins [[org.clojars.jj/lein-cavalo "1.0.5"]]
 ```
 
 # Configuration
