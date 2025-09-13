@@ -8,7 +8,7 @@
   :dependencies [[org.clojure/clojure "1.12.2"]
                  [leiningen "2.11.2"]
                  [org.clojure/tools.logging "1.3.0"]
-                 [leiningen-core "2.11.2"]
+                 [leiningen-core "2.12.0"]
                  [ch.qos.logback/logback-classic "1.5.18"]]
 
   :aot [leiningen.cavalo]

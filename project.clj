@@ -6,7 +6,7 @@
 
   :dependencies [[org.clojars.jj/lein-cavalo "1.0.6-SNAPSHOT"]
                  [org.clojars.jj/lein-carroca "1.0.6-SNAPSHOT"]
-                 [leiningen-core "2.11.2"]]
+                 [leiningen-core "2.12.0"]]
 
   :plugins [[lein-sub "0.3.0"]
             [org.clojars.jj/bump "1.0.4"]
