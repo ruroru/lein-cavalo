@@ -15,6 +15,7 @@
 
   :deploy-repositories [["clojars" {:url      "https://repo.clojars.org"
                                     :username :env/clojars_user
-                                    :password :env/clojars_pass}]] :plugins [[lein-ancient "1.0.0-RC4-SNAPSHOT"]]
+                                    :password :env/clojars_pass}]]
+
   :profiles {:test {:dependencies [[mock-clj "0.2.1"]]}}
   :repl-options {:init-ns lein-cavalo.core})
