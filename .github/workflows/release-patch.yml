@@ -29,7 +29,7 @@ jobs:
       - name: Bump project version in README.md
         run: lein bump-md
       - name: push
-        uses: stefanzweifel/git-auto-commit-action@v6
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Stepping project version to prepare it for release
       - name: Deploy to clojars
@@ -40,6 +40,6 @@ jobs:
       - name: Bump project version to snapshot
         run: lein bump dev
       - name: push
-        uses: stefanzweifel/git-auto-commit-action@v6
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Stepping project version for the next development cycle
