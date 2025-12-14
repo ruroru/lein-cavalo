@@ -5,7 +5,7 @@
             :url  "https://www.eclipse.org/legal/epl-2.0/"}
   :scm {:dir ".."}
 
-  :dependencies [[org.clojure/clojure "1.12.3"]
+  :dependencies [[org.clojure/clojure "1.12.4"]
                  [org.clojure/tools.logging "1.3.0"]
                  [info.sunng/ring-jetty9-adapter "0.39.1"]
                  [ch.qos.logback/logback-classic "1.5.21"]
