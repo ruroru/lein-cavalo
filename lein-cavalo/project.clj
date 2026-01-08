@@ -7,7 +7,7 @@
             :url  "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.12.4"]
                  [leiningen "2.12.0"]
-                 [org.clojure/tools.logging "1.3.0"]
+                 [org.clojure/tools.logging "1.3.1"]
                  [leiningen-core "2.12.0"]
                  [ch.qos.logback/logback-classic "1.5.23"]]
 
