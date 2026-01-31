@@ -8,7 +8,7 @@
   :dependencies [[org.clojure/clojure "1.12.4"]
                  [org.clojure/tools.logging "1.3.1"]
                  [info.sunng/ring-jetty9-adapter "0.39.1"]
-                 [ch.qos.logback/logback-classic "1.5.26"]
+                 [ch.qos.logback/logback-classic "1.5.27"]
                  [ring/ring-core "1.15.3"]]
 
   :deploy-repositories [["clojars" {:url      "https://repo.clojars.org"
