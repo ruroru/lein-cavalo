@@ -101,6 +101,7 @@
 
                               (when @watch-dir
                                 (recur))))))]
+    (.setDaemon thread true)
     (.start ^Thread thread)))
 
 (defn stop []

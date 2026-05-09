@@ -97,14 +97,17 @@
 
 (defn- create-websocket-connection
   "Creates a WebSocket connection with message counting"
-  [port msg-count]
-  (let [connected? (atom false)]
-    @(ws/websocket (format "ws://localhost:%d/" port)
-                   {:on-open    (fn [_] (reset! connected? true))
-                    :on-message (fn [_ msg _]
-                                  (is (= "reload" (.toString msg)))
-                                  (swap! msg-count inc))
-                    :on-close   (fn [_ _ _] (reset! connected? false))})))
+  ([port msg-count]
+   (create-websocket-connection port msg-count nil))
+  ([port msg-count messages]
+   (let [connected? (atom false)]
+     @(ws/websocket (format "ws://localhost:%d/" port)
+                    {:on-open    (fn [_] (reset! connected? true))
+                     :on-message (fn [_ msg _]
+                                   (let [m (.toString msg)]
+                                     (when messages (swap! messages conj m))
+                                     (swap! msg-count inc)))
+                     :on-close   (fn [_ _ _] (reset! connected? false))}))))
 
 (defn- wait-for-websocket-messages
   "Waits for expected number of messages with timeout"
@@ -242,3 +245,41 @@
           (remove-ns 'reloadable-test-ns)
           (when (.exists watch-dir)
             (FileUtils/forceDelete watch-dir)))))))
+
+(deftest css-hot-reload
+  (testing "sends css-reload for CSS-only changes"
+    (with-temp-dir "css-reload-test" "body { color: red; }"
+                   (fn [watch-dir-path watched-file]
+                     ;; rename the file to .css
+                     (let [css-file (format "%s/style.css" watch-dir-path)
+                           _ (spit css-file (slurp watched-file))
+                           project (create-project :port 6789 :dirs-to-watch [watch-dir-path])
+                           msg-count (atom 0)
+                           messages (atom [])]
+                       (with-server project
+                                    (fn []
+                                      (let [ws-conn (create-websocket-connection 6789 msg-count messages)]
+                                        (Thread/sleep 200)
+                                        (spit css-file "body { color: blue; }")
+                                        (wait-for-websocket-messages msg-count 1 3000)
+                                        (ws/close! ws-conn)
+                                        (is (>= @msg-count 1) "Should receive message after CSS change")
+                                        (is (some #(= "css-reload" %) @messages) "Should receive css-reload message"))))))))
+
+  (testing "sends full reload for mixed CSS and non-CSS changes"
+    (with-temp-dir "mixed-reload-test" "<html>body</html>"
+                   (fn [watch-dir-path watched-file]
+                     (let [css-file (format "%s/style.css" watch-dir-path)
+                           _ (spit css-file "body { color: red; }")
+                           project (create-project :port 6790 :dirs-to-watch [watch-dir-path])
+                           msg-count (atom 0)
+                           messages (atom [])]
+                       (with-server project
+                                    (fn []
+                                      (let [ws-conn (create-websocket-connection 6790 msg-count messages)]
+                                        (Thread/sleep 200)
+                                        (spit watched-file "<html>updated</html>")
+                                        (wait-for-websocket-messages msg-count 1 3000)
+                                        (ws/close! ws-conn)
+                                        (is (>= @msg-count 1) "Should receive message after HTML change")
+                                        (is (some #(= "reload" %) @messages) "Should receive full reload message")))))))))

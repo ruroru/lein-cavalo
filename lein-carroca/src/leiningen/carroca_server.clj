@@ -43,10 +43,17 @@
     (= "text/html" (get lower-case-headers "content-type"))))
 
 
-(defn notify-clients []
-  (doseq [socket @sockets]
-    (tap> [:ws :msg "message"])
-    (ringws/send socket (str "reload"))))
+(defn- css-only? [changed-files]
+  (and (seq changed-files)
+       (every? #(str/ends-with? % ".css") changed-files)))
+
+(defn notify-clients
+  ([] (notify-clients nil))
+  ([changed-files]
+   (let [message (if (css-only? changed-files) "css-reload" "reload")]
+     (doseq [socket @sockets]
+       (tap> [:ws :msg message])
+       (ringws/send socket message)))))
 
 (defn- get-server-config [server-config]
   (merge {:port               8080

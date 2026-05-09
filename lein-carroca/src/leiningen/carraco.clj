@@ -43,7 +43,7 @@
       (dir-watcher/watch dirs-to-watch
                         (fn [changed-files]
                           (reload-fn changed-files)
-                          (server/notify-clients))
+                          (server/notify-clients changed-files))
                         notification-delay))
 
     (let [local-server (server/run-server server-config (resolve-handler handler-function-symbol))]
