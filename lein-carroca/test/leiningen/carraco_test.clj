@@ -211,3 +211,34 @@
                        (ws/close! ws-conn)
                        (Thread/sleep 200)
                        (is (= 0 (count @sockets-atom)) "Should have no sockets after disconnect")))))))
+
+(deftest namespace-reload-on-file-change
+  (testing "reloads clj namespace and notifies websocket clients"
+    (let [watch-dir-path (format "%s/ns-reload-test" (System/getProperty "java.io.tmpdir"))
+          watch-dir (File. watch-dir-path)
+          clj-file (format "%s/reloadable_test_ns.clj" watch-dir-path)
+          project (create-project :port 5678 :dirs-to-watch [watch-dir-path])
+          msg-count (atom 0)]
+
+      (when (.exists watch-dir) (FileUtils/forceDelete watch-dir))
+      (Files/createDirectory (.toPath watch-dir) (into-array FileAttribute nil))
+      (spit clj-file "(ns reloadable-test-ns)\n(def value 1)")
+      (load-file clj-file)
+
+      (try
+        (is (= 1 @(resolve 'reloadable-test-ns/value)) "Initial value should be 1")
+
+        (with-server project
+                     (fn []
+                       (let [ws-conn (create-websocket-connection 5678 msg-count)]
+                         (Thread/sleep 200)
+                         (spit clj-file "(ns reloadable-test-ns)\n(def value 42)")
+                         (wait-for-websocket-messages msg-count 1 3000)
+                         (ws/close! ws-conn)
+                         (is (>= @msg-count 1) "Should receive reload message after clj file change")
+                         (is (= 42 @(resolve 'reloadable-test-ns/value)) "Namespace should be reloaded with new value"))))
+
+        (finally
+          (remove-ns 'reloadable-test-ns)
+          (when (.exists watch-dir)
+            (FileUtils/forceDelete watch-dir)))))))

@@ -39,7 +39,12 @@
         handler-function-symbol (:ring-handler (:cavalo project))
         notification-delay (:notification-delay server-config 200)
         ]
-    (dir-watcher/watch dirs-to-watch (fn [] (server/notify-clients)) notification-delay)
+    (let [reload-fn (requiring-resolve 'leiningen.namespace-reloader/reload-changed-files)]
+      (dir-watcher/watch dirs-to-watch
+                        (fn [changed-files]
+                          (reload-fn changed-files)
+                          (server/notify-clients))
+                        notification-delay))
 
     (let [local-server (server/run-server server-config (resolve-handler handler-function-symbol))]
       (reset! server-instance local-server))))

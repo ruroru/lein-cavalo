@@ -80,7 +80,11 @@
                               (let [key (.poll watch-service)]
                                 (if key
                                   (let [events (.pollEvents ^WatchKey key)
-                                        watched-path (.watchable key)]
+                                        watched-path (.watchable key)
+                                        changed-files (mapv (fn [^WatchEvent event]
+                                                              (.toString (.resolve ^Path watched-path
+                                                                                   (.toString (.context event)))))
+                                                            events)]
 
                                     (doseq [event events]
                                       (let [kind (.kind ^WatchEvent event)
@@ -91,7 +95,7 @@
                                                                      watch-service))))
 
                                     (^[long] Thread/sleep notification-delay)
-                                    (notify-function)
+                                    (notify-function changed-files)
                                     (.reset key))
                                   (^[long] Thread/sleep 50)))
 
