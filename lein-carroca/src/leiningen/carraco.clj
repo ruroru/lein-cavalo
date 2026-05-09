@@ -4,7 +4,7 @@
     [leiningen.carroca-server :as server]
     [leiningen.directory-watcher :as dir-watcher])
   (:import (org.eclipse.jetty.server Server)))
-(def ^:private server (atom nil))
+(def ^:private server-instance (atom nil))
 
 (defn- require? [symbol]
   (try
@@ -42,11 +42,12 @@
     (dir-watcher/watch dirs-to-watch (fn [] (server/notify-clients)) notification-delay)
 
     (let [local-server (server/run-server server-config (resolve-handler handler-function-symbol))]
-      (reset! server local-server))))
+      (reset! server-instance local-server))))
 
 
 (defn stop-server
   "Stops server"
   []
   (dir-watcher/stop)
-  (.stop ^Server @server))
+  (when-let [s @server-instance]
+    (.stop ^Server s)))

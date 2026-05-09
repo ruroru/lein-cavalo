@@ -78,7 +78,7 @@
                           (let [watch-service ^WatchService (watch-dirs dirs-to-watch)]
                             (loop []
                               (let [key (.poll watch-service)]
-                                (when key
+                                (if key
                                   (let [events (.pollEvents ^WatchKey key)
                                         watched-path (.watchable key)]
 
@@ -92,7 +92,8 @@
 
                                     (^[long] Thread/sleep notification-delay)
                                     (notify-function)
-                                    (.reset key))))
+                                    (.reset key))
+                                  (^[long] Thread/sleep 50)))
 
                               (when @watch-dir
                                 (recur))))))]

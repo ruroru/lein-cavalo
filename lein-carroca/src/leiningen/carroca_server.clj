@@ -25,8 +25,7 @@
                                              (ringws/send socket (str "echo: " message)))
                                :on-close   (fn [socket status-code reason]
                                              (do
-                                               (swap! sockets (fn [old-socket-map]
-                                                                (disj (get old-socket-map uri #{}) socket)))
+                                               (swap! sockets disj socket)
                                                (tap> [:ws :close status-code reason])))
                                :on-pong    (fn [_socket _data]
                                              (tap> [:ws :pong]))

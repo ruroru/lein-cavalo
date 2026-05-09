@@ -4,7 +4,8 @@
             [clojure.test :refer [deftest is testing]]
             [hato.client :as http-client]
             [hato.websocket :as ws]
-            [leiningen.carraco :as carroca])
+            [leiningen.carraco :as carroca]
+            [leiningen.carroca-server])
   (:import (java.io File)
            (java.nio.file Files)
            (java.nio.file.attribute FileAttribute)
@@ -196,4 +197,17 @@
                          (is (>= @msg-count 1) "Should receive reload message for subdirectory changes"))))
         (finally
           (when (.exists watch-dir)
-            (FileUtils/forceDelete watch-dir)))))))
+            (FileUtils/forceDelete watch-dir))))))
+
+  (testing "socket cleanup on disconnect"
+    (let [project (create-project :port 4567)
+          sockets-atom @(resolve 'leiningen.carroca-server/sockets)]
+      (with-server project
+                   (fn []
+                     (is (= 0 (count @sockets-atom)) "Should start with no sockets")
+                     (let [ws-conn (create-websocket-connection 4567 (atom 0))]
+                       (Thread/sleep 200)
+                       (is (= 1 (count @sockets-atom)) "Should have one socket after connect")
+                       (ws/close! ws-conn)
+                       (Thread/sleep 200)
+                       (is (= 0 (count @sockets-atom)) "Should have no sockets after disconnect")))))))
