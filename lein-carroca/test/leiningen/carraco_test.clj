@@ -283,3 +283,99 @@
                                         (ws/close! ws-conn)
                                         (is (>= @msg-count 1) "Should receive message after HTML change")
                                         (is (some #(= "reload" %) @messages) "Should receive full reload message")))))))))
+
+(deftest image-hot-reload
+  (testing "sends img-reload for image-only changes"
+    (with-temp-dir "img-reload-test" "placeholder"
+                   (fn [watch-dir-path _watched-file]
+                     (let [img-file (format "%s/logo.png" watch-dir-path)
+                           _ (spit img-file "fake-png-data")
+                           project (create-project :port 7001 :dirs-to-watch [watch-dir-path])
+                           msg-count (atom 0)
+                           messages (atom [])]
+                       (with-server project
+                                    (fn []
+                                      (let [ws-conn (create-websocket-connection 7001 msg-count messages)]
+                                        (Thread/sleep 200)
+                                        (spit img-file "updated-fake-png-data")
+                                        (wait-for-websocket-messages msg-count 1 3000)
+                                        (ws/close! ws-conn)
+                                        (is (>= @msg-count 1) "Should receive message after image change")
+                                        (is (some #(= "img-reload" %) @messages) "Should receive img-reload message"))))))))
+
+  (testing "sends full reload for mixed image and non-image changes"
+    (with-temp-dir "mixed-img-reload-test" "<html>body</html>"
+                   (fn [watch-dir-path watched-file]
+                     (let [img-file (format "%s/logo.png" watch-dir-path)
+                           _ (spit img-file "fake-png-data")
+                           project (create-project :port 7002 :dirs-to-watch [watch-dir-path])
+                           msg-count (atom 0)
+                           messages (atom [])]
+                       (with-server project
+                                    (fn []
+                                      (let [ws-conn (create-websocket-connection 7002 msg-count messages)]
+                                        (Thread/sleep 200)
+                                        (spit watched-file "<html>updated</html>")
+                                        (wait-for-websocket-messages msg-count 1 3000)
+                                        (ws/close! ws-conn)
+                                        (is (>= @msg-count 1) "Should receive message after mixed change")
+                                        (is (some #(= "reload" %) @messages) "Should receive full reload message")))))))))
+
+(deftest js-hot-reload
+  (testing "sends js-reload for JS-only changes"
+    (with-temp-dir "js-reload-test" "placeholder"
+                   (fn [watch-dir-path _watched-file]
+                     (let [js-file (format "%s/app.js" watch-dir-path)
+                           _ (spit js-file "console.log('hello');")
+                           project (create-project :port 7003 :dirs-to-watch [watch-dir-path])
+                           msg-count (atom 0)
+                           messages (atom [])]
+                       (with-server project
+                                    (fn []
+                                      (let [ws-conn (create-websocket-connection 7003 msg-count messages)]
+                                        (Thread/sleep 200)
+                                        (spit js-file "console.log('updated');")
+                                        (wait-for-websocket-messages msg-count 1 3000)
+                                        (ws/close! ws-conn)
+                                        (is (>= @msg-count 1) "Should receive message after JS change")
+                                        (is (some #(= "js-reload" %) @messages) "Should receive js-reload message"))))))))
+
+  (testing "sends js-reload for .mjs files"
+    (with-temp-dir "mjs-reload-test" "placeholder"
+                   (fn [watch-dir-path _watched-file]
+                     (let [mjs-file (format "%s/module.mjs" watch-dir-path)
+                           _ (spit mjs-file "export default 1;")
+                           project (create-project :port 7004 :dirs-to-watch [watch-dir-path])
+                           msg-count (atom 0)
+                           messages (atom [])]
+                       (with-server project
+                                    (fn []
+                                      (let [ws-conn (create-websocket-connection 7004 msg-count messages)]
+                                        (Thread/sleep 200)
+                                        (spit mjs-file "export default 2;")
+                                        (wait-for-websocket-messages msg-count 1 3000)
+                                        (ws/close! ws-conn)
+                                        (is (>= @msg-count 1) "Should receive message after .mjs change")
+                                        (is (some #(= "js-reload" %) @messages) "Should receive js-reload message for .mjs"))))))))
+
+  (testing "sends full reload for mixed JS and CSS changes"
+    (with-temp-dir "mixed-js-css-test" "placeholder"
+                   (fn [watch-dir-path _watched-file]
+                     (let [js-file (format "%s/app.js" watch-dir-path)
+                           css-file (format "%s/style.css" watch-dir-path)
+                           _ (spit js-file "console.log('hello');")
+                           _ (spit css-file "body { color: red; }")
+                           project (create-project :port 7005 :dirs-to-watch [watch-dir-path])
+                           msg-count (atom 0)
+                           messages (atom [])]
+                       (with-server project
+                                    (fn []
+                                      (let [ws-conn (create-websocket-connection 7005 msg-count messages)]
+                                        (Thread/sleep 200)
+                                        (spit js-file "console.log('updated');")
+                                        (spit css-file "body { color: blue; }")
+                                        (wait-for-websocket-messages msg-count 1 3000)
+                                        (ws/close! ws-conn)
+                                        (is (>= @msg-count 1) "Should receive message after mixed change")
+                                        (is (some #(= "reload" %) @messages) "Should receive full reload for mixed types")))))))))
+

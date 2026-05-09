@@ -9,7 +9,7 @@
 (def ^:private sockets (atom #{}))
 
 (defn- reload-script [port]
-  (str "<script>" (format (slurp (io/resource "js/reload.js")) port) "</script>"))
+  (str "<script>" (str/replace (slurp (io/resource "js/reload.js")) "%s" (str port)) "</script>"))
 
 (defn- websocket-handler [req]
   (let [uri (:uri req)
@@ -43,14 +43,31 @@
     (= "text/html" (get lower-case-headers "content-type"))))
 
 
-(defn- css-only? [changed-files]
+(def ^:private css-extensions #{".css"})
+(def ^:private image-extensions #{".png" ".jpg" ".jpeg" ".gif" ".svg" ".webp" ".ico" ".bmp"})
+(def ^:private js-extensions #{".js" ".mjs"})
+
+(defn- file-extension [^String path]
+  (let [dot-idx (.lastIndexOf path ".")]
+    (when (pos? dot-idx)
+      (str/lower-case (subs path dot-idx)))))
+
+(defn- all-match-extensions? [changed-files extensions]
   (and (seq changed-files)
-       (every? #(str/ends-with? % ".css") changed-files)))
+       (every? #(contains? extensions (file-extension %)) changed-files)))
+
+(defn- detect-reload-type [changed-files]
+  (cond
+    (empty? changed-files) "reload"
+    (all-match-extensions? changed-files css-extensions) "css-reload"
+    (all-match-extensions? changed-files image-extensions) "img-reload"
+    (all-match-extensions? changed-files js-extensions) "js-reload"
+    :else "reload"))
 
 (defn notify-clients
   ([] (notify-clients nil))
   ([changed-files]
-   (let [message (if (css-only? changed-files) "css-reload" "reload")]
+   (let [message (detect-reload-type changed-files)]
      (doseq [socket @sockets]
        (tap> [:ws :msg message])
        (ringws/send socket message)))))
