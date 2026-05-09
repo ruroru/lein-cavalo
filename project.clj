@@ -1,4 +1,4 @@
-(defproject org.clojars.jj/lein-cavalo-parent "1.0.9"
+(defproject org.clojars.jj/lein-cavalo-parent "1.0.10-SNAPSHOT"
   :description "Leiningen plugin to reload page on file change"
   :url "https://github.com/ruroru/lein-cavalo"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
