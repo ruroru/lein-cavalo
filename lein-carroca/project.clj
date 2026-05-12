@@ -7,7 +7,7 @@
         :url  "https://github.com/ruroru/lein-cavalo"
         :dir  ".."}
 
-  :dependencies [[org.clojure/clojure "1.12.4"]
+  :dependencies [[org.clojure/clojure "1.12.5"]
                  [org.clojure/tools.logging "1.3.1"]
                  [info.sunng/ring-jetty9-adapter "0.39.3"]
                  [ch.qos.logback/logback-classic "1.5.32"]
