@@ -16,7 +16,7 @@
   :deploy-repositories [["clojars" {:url      "https://repo.clojars.org"
                                     :username :env/clojars_user
                                     :password :env/clojars_pass}]]
-  :plugins [[lein-ancient "1.0.0-RC4-SNAPSHOT"]]
+  :plugins [[lein-ancient "1.0.0"]]
   :resource-paths ["resources"]
   :profiles {:test {:resource-paths ["test/resources"]
                     :dependencies   [[hato "1.0.0"]
