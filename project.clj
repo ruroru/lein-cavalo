@@ -5,7 +5,7 @@
             :url  "https://www.eclipse.org/legal/epl-2.0/"}
 
   :dependencies [
-                 [leiningen-core "2.12.0"]]
+                 [leiningen-core "2.13.0"]]
 
   :plugins [[lein-sub "0.3.0"]
             [org.clojars.jj/bump "1.0.4"]
