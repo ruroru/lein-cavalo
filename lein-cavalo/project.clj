@@ -11,7 +11,7 @@
   :dependencies [[org.clojure/clojure "1.12.6"]
                  [leiningen "2.13.0"]
                  [org.clojure/tools.logging "1.3.1"]
-                 [leiningen-core "2.13.0"]
+                 [leiningen-core "2.13.1"]
                  [ch.qos.logback/logback-classic "1.6.5"]]
 
   :aot [leiningen.cavalo]
